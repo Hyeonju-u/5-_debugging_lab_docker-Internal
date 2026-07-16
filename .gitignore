@@ -1,0 +1,24 @@
+solutions/
+
+# 빌드 산출물
+build/
+
+# 컴파일 결과물 / 오브젝트 파일
+*.o
+*.obj
+*.out
+*.exe
+a.out
+
+# 디버깅 / 코어 덤프
+core
+core.*
+*.dSYM/
+vgcore.*
+
+# 에디터 / OS 부산물
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
