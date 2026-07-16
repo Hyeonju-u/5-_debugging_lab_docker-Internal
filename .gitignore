@@ -20,5 +20,10 @@ vgcore.*
 .DS_Store
 *.swp
 *~
-.vscode/
 .idea/
+
+# VS Code: 공유 설정(launch.json, tasks.json)은 커밋하고, 개인 설정만 제외
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
