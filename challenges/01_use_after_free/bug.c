@@ -156,6 +156,8 @@ int main(void) {
     screen_render(&s);
     screen_dispatch(&s, 1);
 
+    /* TODO free한 위젯의 슬롯을 스크린에서 정리할 필요가 있음 */
+
     char *status = app_build_status("dialog closed");
     printf("%s\n", status);
 

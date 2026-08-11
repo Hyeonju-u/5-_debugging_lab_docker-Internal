@@ -90,8 +90,7 @@ int main(void) {
     cfg_set(&cfg, "port", "8080");
 
     /* [Thinking Point]
-     * "${host}" 처럼 ${...} 로 감싼 부분은 expand 함수가 설정값으로 치환하는 '자리표시자
-     * (placeholder)'다. 
+     * "${host}" 처럼 ${...} 로 감싼 부분은 expand 함수가 설정값으로 치환하는 'placeholder' 다.
      *   tip 1. 이 문자열 자체는 그냥 상수 텍스트일 뿐, 컴파일러가 ${...} 를 해석하지 않는다.
      *          실제 치환은 런타임에 expand 함수 안에서 키를 찾아 값을 끼워넣는 방식으로 일어난다.
      *   tip 2. cfg_get("path") 는 등록되지 않은 키라 NULL 을 돌려준다.
