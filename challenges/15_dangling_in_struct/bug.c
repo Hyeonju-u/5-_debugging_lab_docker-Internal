@@ -1,6 +1,5 @@
 /*
  * Challenge 15 — 구조체에 저장된 Dangling Pointer (심화: 세션이 해제된 User 참조)
- * 난이도: ★★★★★
  *
  * [시나리오]
  *   로그인하면 User 객체를 힙에 만들고, Session 이 그 User 를 가리킨다. User 는 권한
@@ -94,7 +93,6 @@ int main(void) {
 
     char *rec = audit_record("logout");      
     printf("%s\n", rec);
-
     
     printf("second request allowed=%d\n", handle_request(&s, "write"));
 

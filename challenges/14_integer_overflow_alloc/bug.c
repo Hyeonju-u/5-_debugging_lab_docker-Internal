@@ -1,6 +1,5 @@
 /*
  * Challenge 14 — Integer Overflow → 과소할당 → 오버플로 (심화: 이미지 버퍼)
- * 난이도: ★★★★★
  *
  * [시나리오]
  *   RGBA 이미지 버퍼를 만든다. 픽셀 바이트 수 = width * height * channels 로 계산해
@@ -9,6 +8,14 @@
  * [기대 동작]
  *   이미지 버퍼를 할당·초기화하고 몇몇 픽셀을 읽어 확인한 뒤 정상 종료.
  *
+ * [사용 예제]
+ *   RGB만 있으면 픽셀은 “무슨 색이냐”만 표현한다.
+ *   A(Alpha) 가 붙으면 “얼마나 보이는가”까지 표현한다.
+ *     A = 255 (또는 1.0): 완전 불투명. 아래 사진이 안 보임
+ *     A = 0: 완전 투명. 로고 자리는 비어 있고 사진만 보임
+ *     A = 128: 반투명. 로고 색과 사진 색이 섞임
+ *     웹·앱에서 PNG 로고, 게임 캐릭터, UI 버튼 그림자가 다 이 방식
+ *    
  * [증상]
  *   크기 계산 `width * height * channels` 가 'int' 산술로 먼저 이뤄진 뒤에야 size_t 로
  *   넓혀진다. 큰 해상도에서는 이 int 곱이 32비트 범위를 넘어 래핑되어, malloc 은
@@ -22,20 +29,21 @@
  *   (gdb) run                        → 크래시(SIGSEGV)
  *   (gdb) bt                         → image_fill 의 px[i] = ... 지점
  *   (gdb) frame N ; print img->nbytes  → int 곱이 래핑되어 실제보다 작음
- *   (gdb) print (long)img->w * img->h * img->channels  → 올바른(큰) 값과 대조
+ *   (gdb) print (long)img->width * img->height * img->channels  → 올바른(큰) 값과 대조
  *
  * [printf(로그)로 잡기]
  *   할당 크기(래핑된 int)와 올바른 크기(size_t)를 나란히 출력:
  *     fprintf(stderr, "alloc=%d correct=%zu\n",
- *             img->nbytes, (size_t)img->w * img->h * img->channels);
+ *             img->nbytes, (size_t)img->width * img->height * img->channels);
  *   → 두 값이 크게 다르면 곱셈 오버플로로 과소할당된 것.
  *   (stdout 은 버퍼링되니 stderr 로 찍어야 크래시 직전 로그가 남는다)
  *
- * TODO: 크기 계산을 size_t 로 승격해서(각 인자를 (size_t)로 캐스팅) 하고, 곱셈
- *       오버플로를 검사하세요(또는 calloc(count, size) 로 오버플로 검사를 위임).
+ * TODO: 크기 계산을 size_t 로 (각 인자를 (size_t)로 캐스팅) 하고, 곱셈
+ *       오버플로를 검사하세요(SIZE_MAX를 이용해서 검사)
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h> // 수정할 때 SIZE_MAX 로 곱셈 오버플로를 검사하라고 미리 넣어 둔 헤더
 
 typedef struct {
     int width;

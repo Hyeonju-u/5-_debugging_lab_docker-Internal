@@ -1,13 +1,13 @@
 /*
  * Challenge 07 — Stack Use After Return (심화: 지역 배열 주소가 탈출)
- * 난이도: ★★★☆☆
  *
  * [시나리오]
  *   문자열을 줄 단위로 쪼개, 각 줄의 시작 주소들을 담은 "뷰(LineView)"를 만든다.
  *   split_lines() 가 만든 뷰를 호출자가 받아서 출력한다.
  *
  * [기대 동작]
- *   "alpha / beta / gamma" 세 줄을 순서대로 출력.
+ *   "alpha / beta / gamma" 세 줄로 쪼갠 뒤, 줄 수와 각 줄 첫 글자의 합을 출력
+ *   (lines = 3, checksum = 298).
  *
  * [증상]
  *   split_lines() 는 줄 포인터들을 '지역 배열' parts[] 에 모은 뒤, 그 배열의 주소를

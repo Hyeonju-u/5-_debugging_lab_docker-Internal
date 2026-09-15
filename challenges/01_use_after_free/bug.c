@@ -1,6 +1,5 @@
 /*
  * Challenge 01 — Use After Free (심화: vtable 기반 위젯 시스템)
- * 난이도: ★★★☆☆
  *
  * [시나리오]
  *   아주 작은 GUI 흉내. 각 위젯(Widget)은 힙 객체이며 첫 멤버로 "vtable"
@@ -34,8 +33,10 @@
  *   → 같은 주소가 destroy 후 render 에서 다시 나오고, vtbl 값이 달라져 있으면 UAF.
  *   (stdout 은 버퍼링되니 stderr 로 찍어야 크래시 직전 로그가 남는다)
  *
- * TODO: 위젯을 free 한 즉시 Screen 의 해당 슬롯을 NULL 로 만들고(또는 배열에서 제거),
- *       이후 렌더 루프가 NULL 슬롯을 건너뛰게 하세요. "해제 = 소유 포인터 무효화".
+ * TODO: "해제"와 "슬롯 정리"를 한 곳에서 같이 하세요. 위젯 자신은 Screen 을 모르므로
+ *       (dialog_on_event 는 self 만 안다) 이벤트 핸들러에서는 closed 표시만 남기고,
+ *       Screen 쪽에서 closed 위젯을 free 한 뒤 그 슬롯을 NULL 로 만드는 편이 자연스럽습니다.
+ *       이후 dispatch/render 루프가 NULL 슬롯을 건너뛰게 하세요. "해제 = 소유 포인터 무효화".
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -156,7 +157,7 @@ int main(void) {
     screen_render(&s);
     screen_dispatch(&s, 1);
 
-    /* TODO free한 위젯의 슬롯을 스크린에서 정리할 필요가 있음 */
+    /* TODO 닫힌(closed) 위젯을 여기서 정리(free + 해당 슬롯 NULL)할 필요가 있음 */
 
     char *status = app_build_status("dialog closed");
     printf("%s\n", status);

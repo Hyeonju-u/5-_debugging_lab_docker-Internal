@@ -1,6 +1,5 @@
 /*
  * Challenge 10 — realloc 후 옛 포인터 사용 (심화: undo 스냅샷 댕글링)
- * 난이도: ★★★★☆
  *
  * [시나리오]
  *   정수 편집 버퍼 EditBuffer. 내용이 커지면 eb_grow() 가 realloc 으로 버퍼를 키운다.

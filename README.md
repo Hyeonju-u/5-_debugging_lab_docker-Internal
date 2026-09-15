@@ -110,31 +110,31 @@ make check-all                # 챌린지(크래시) + 해설(정상 종료 0) �
 
 > 빌드는 `-g -O0 -fno-omit-frame-pointer` 로 하므로 gdb 백트레이스가 소스 라인/변수까지 정확히 나옵니다.
 
-## 챌린지 목록 (난이도별 20개)
+## 챌린지 목록 (20개)
 
 
-| #   | 이름                      | 난이도   | 버그 유형                              | gdb 로 보이는 크래시            |
-| --- | ----------------------- | ----- | ---------------------------------- | ------------------------ |
-| 01  | use_after_free          | ★★★☆☆ | vtable 위젯: 해제 후 슬롯 미정리 → 함수 포인터 호출 | SIGSEGV                  |
-| 02  | stack_buffer_overflow   | ★★★☆☆ | 삼각 인덱싱 off-by-one 으로 스택 배열 초과      | SIGABRT (stack smashing) |
-| 03  | heap_buffer_overflow    | ★★★☆☆ | 동적 배열 성장 버그(용량·실제버퍼 불일치)           | SIGABRT (realloc 감지)     |
-| 04  | double_free             | ★★★☆☆ | 별칭(aliasing) 인덱스 두 곳에서 같은 객체 해제    | SIGABRT (double free)    |
-| 05  | null_return_deref       | ★★★☆☆ | 설정 템플릿 확장 중 누락 키의 NULL 반환 역참조      | SIGSEGV                  |
-| 06  | null_deref              | ★★★☆☆ | 헤더 파서: ':' 없는 줄 → strchr NULL 에 쓰기 | SIGSEGV                  |
-| 07  | stack_use_after_return  | ★★★☆☆ | 지역 배열 주소가 뷰로 탈출 → 프레임 재사용 후 역참조    | SIGSEGV                  |
-| 08  | uninitialized_read      | ★★★☆☆ | 더티 힙 재사용으로 미초기화 행 포인터 역참조          | SIGSEGV                  |
-| 09  | strcpy_overflow         | ★★★★☆ | join 크기계산 off-by-one(마지막 조각 누락)    | SIGSEGV                  |
-| 10  | realloc_dangling        | ★★★★☆ | undo 스냅샷이 realloc 이동으로 댕글링 → 이중 해제 | SIGABRT (double free)    |
-| 11  | global_overflow         | ★★★★☆ | 전역 아레나 bump 할당기 경계 미검사             | SIGSEGV                  |
-| 12  | free_non_heap           | ★★★★☆ | CSV 필드(내부 포인터)를 개별 free            | SIGABRT (invalid ptr)    |
-| 13  | linked_list_uaf         | ★★★★★ | 잡 큐 필터: free 후 next 읽기(UAF)        | SIGSEGV                  |
-| 14  | integer_overflow_alloc  | ★★★★★ | 이미지 w*h*ch int 곱 오버플로 → 과소할당       | SIGSEGV                  |
-| 15  | dangling_in_struct      | ★★★★★ | 세션이 해제된 User 의 콜백 호출               | SIGBUS/SIGSEGV           |
-| 16  | unused_cap_overflow     | ★★★★★ | cap 인자를 안 쓰는 append 오버플로           | SIGABRT (stack smashing) |
-| 17  | ownership_uaf           | ★★★★★ | 메시지 브로커: 소비자 해제 + 감사 로그 재해제(UAF)   | SIGSEGV                  |
-| 18  | cleanup_double_free     | ★★★★★ | 다자원 goto 래더: 검증 실패 경로 tx 이중 해제     | SIGABRT (double free)    |
-| 19  | realloc_shrink_overflow | ★★★★★ | 신호 버퍼 트림 후 옛 len 으로 순회             | SIGSEGV                  |
-| 20  | vector_stale_pointer    | ★★★★★ | 히스토그램 hot 포인터가 성장으로 stale          | SIGSEGV                  |
+| #   | 이름                      | 버그 유형                              | gdb 로 보이는 크래시            |
+| --- | ----------------------- | ---------------------------------- | ------------------------ |
+| 01  | use_after_free          | vtable 위젯: 해제 후 슬롯 미정리 → 함수 포인터 호출 | SIGSEGV                  |
+| 02  | stack_buffer_overflow   | 삼각 인덱싱 off-by-one 으로 스택 배열 초과      | SIGABRT (stack smashing) |
+| 03  | heap_buffer_overflow    | 동적 배열 성장 버그(용량·실제버퍼 불일치)           | SIGABRT (realloc 감지)     |
+| 04  | double_free             | 별칭(aliasing) 인덱스 두 곳에서 같은 객체 해제    | SIGABRT (double free)    |
+| 05  | null_return_deref       | 설정 템플릿 확장 중 누락 키의 NULL 반환 역참조      | SIGSEGV                  |
+| 06  | null_deref              | 헤더 파서: ':' 없는 줄 → strchr NULL 에 쓰기 | SIGSEGV                  |
+| 07  | stack_use_after_return  | 지역 배열 주소가 뷰로 탈출 → 프레임 재사용 후 역참조    | SIGSEGV                  |
+| 08  | uninitialized_read      | 더티 힙 재사용으로 미초기화 행 포인터 역참조          | SIGSEGV                  |
+| 09  | strcpy_overflow         | join 크기계산 off-by-one(마지막 조각 누락)    | SIGSEGV                  |
+| 10  | realloc_dangling        | undo 스냅샷이 realloc 이동으로 댕글링 → 이중 해제 | SIGABRT (double free)    |
+| 11  | global_overflow         | 전역 아레나 bump 할당기 경계 미검사             | SIGSEGV                  |
+| 12  | free_non_heap           | CSV 필드(내부 포인터)를 개별 free            | SIGABRT (invalid ptr)    |
+| 13  | linked_list_uaf         | 잡 큐 필터: free 후 next 읽기(UAF)        | SIGSEGV                  |
+| 14  | integer_overflow_alloc  | 이미지 w*h*ch int 곱 오버플로 → 과소할당       | SIGSEGV                  |
+| 15  | dangling_in_struct      | 세션이 해제된 User 의 콜백 호출               | SIGBUS/SIGSEGV           |
+| 16  | unused_cap_overflow     | cap 인자를 안 쓰는 append 오버플로           | SIGABRT (stack smashing) |
+| 17  | ownership_uaf           | 메시지 브로커: 소비자 해제 + 감사 로그 재해제(UAF)   | SIGSEGV                  |
+| 18  | cleanup_double_free     | 다자원 goto 래더: 검증 실패 경로 tx 이중 해제     | SIGABRT (double free)    |
+| 19  | realloc_shrink_overflow | 신호 버퍼 트림 후 옛 len 으로 순회             | SIGSEGV                  |
+| 20  | vector_stale_pointer    | 히스토그램 hot 포인터가 성장으로 stale          | SIGSEGV                  |
 
 
 > 검증: 리눅스(도커)에서 `make check` 시 20개 전부 크래시합니다.

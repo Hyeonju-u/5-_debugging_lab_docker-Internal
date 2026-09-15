@@ -1,6 +1,5 @@
 /*
  * Challenge 13 — Linked List Use-After-Free (심화: 잡 큐 필터링)
- * 난이도: ★★★★★
  *
  * [시나리오]
  *   우선순위가 있는 잡(Job)들을 단일 연결 리스트 큐로 관리한다. 스케줄러가
@@ -8,10 +7,10 @@
  *   로그(동적 배열)에 기록한다.
  *
  * [기대 동작]
- *   저우선순위 잡을 모두 제거하고, 남은 잡을 우선순위 순으로 출력한 뒤 정상 종료.
+ *   저우선순위 잡을 모두 제거하고, 취소된 개수와 남은 개수를 출력한 뒤 정상 종료.
  *
  * [증상]
- *   필터 루프가 제거 대상 노드를 free() 한 뒤, 그 "해제된 노드의 next" 를 읽어 다음으로
+ *   필터 루프가 제거 대상 노드를 job_release() 로 free 한 뒤, 그 "해제된 노드의 next" 를 읽어 다음으로
  *   이동한다(UAF). 게다가 감사 로그가 malloc/realloc 로 힙을 만지면서 방금 해제된 노드
  *   청크가 재사용/변조되어, next 가 엉뚱한 주소로 바뀐다. 그 주소를 따라가며 필드를
  *   역참조하다 SIGSEGV. 크래시는 순회 지점에서 나지만, 원인은 "free 후 next 읽기".
@@ -27,7 +26,7 @@
  *   free 전에 next 를 미리 찍고, free 후 이동한 cur 을 비교:
  *     Job *nx = cur->next;
  *     fprintf(stderr, "free id=%d cur=%p saved_next=%p\n", cur->id,(void*)cur,(void*)nx);
- *     free(cur);
+ *     job_release(cur);
  *     fprintf(stderr, "after free, cur->next would read freed memory\n");
  *   → free 뒤 읽은 next 가 saved_next 와 달라지거나 그 직후 크래시.
  *   (stdout 은 버퍼링되니 stderr 로 찍어야 크래시 직전 로그가 남는다)
@@ -68,6 +67,11 @@ static Job *push_job(Job *head, int id, int priority) {
     return n;
 }
 
+/* 취소된 잡을 반납한다(해제 책임은 이 함수가 진다). */
+static void job_release(Job *j) {
+    free(j);
+}
+
 static Job *filter_jobs(Job *head, int threshold, Audit *audit) {
     Job *keep = NULL, *keep_tail = NULL;
     Job *cur = head;
@@ -75,7 +79,7 @@ static Job *filter_jobs(Job *head, int threshold, Audit *audit) {
     while (cur != NULL) {
         if (cur->priority < threshold) {
             audit_add(audit, cur->id);   
-            free(cur);                   
+            job_release(cur);            
             cur = cur->next;             
         } else {
             Job *nx = cur->next;

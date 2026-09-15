@@ -1,6 +1,5 @@
 /*
  * Challenge 02 — Stack Buffer Overflow (심화: 삼각 인덱싱 off-by-one)
- * 난이도: ★★★☆☆
  *
  * [시나리오]
  *   파스칼의 삼각형을 스택 위 "1차원" 배열에 삼각 인덱싱으로 채운다.
@@ -64,7 +63,7 @@ static int tri_index(int i, int j) {
 
 /* 파스칼의 삼각형을 tri[] 에 채운다. */
 static void build_pascal(int *tri, int rows) {
-    for (int i = 0; i <= rows; i++) {                 /* (!) BUG: i <= rows → 한 행 초과 */
+    for (int i = 0; i <= rows; i++) {
         for (int j = 0; j <= i; j++) {
             int idx = tri_index(i, j);
             if (j == 0 || j == i) {

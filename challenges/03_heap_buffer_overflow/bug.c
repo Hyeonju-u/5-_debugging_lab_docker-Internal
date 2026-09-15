@@ -1,14 +1,13 @@
 /*
  * Challenge 03 — Heap Buffer Overflow (심화: 동적 배열 성장 버그)
- * 난이도: ★★★☆☆
  *
  * [시나리오]
- *   자동 성장하는 정수 동적 배열 IntList (push/ensure/get/sum). 용량이 부족하면
+ *   자동 성장하는 정수 동적 배열 IntList (init/ensure/push/sum). 용량이 부족하면
  *   list_ensure() 가 용량을 2배로 늘리고 realloc 한다. 이 리스트로 큰 수열을
  *   만들어 합을 구한다.
  *
  * [기대 동작]
- *   0..N-1 의 제곱을 리스트에 넣고 합을 출력한 뒤 정상 종료.
+ *   0..N-1 을 100 으로 나눈 나머지를 리스트에 넣고, 길이·용량·합을 출력한 뒤 정상 종료.
  *
  * [증상]
  *   list_ensure() 가 새 용량(newcap)을 계산해 l->cap 에는 반영하지만,

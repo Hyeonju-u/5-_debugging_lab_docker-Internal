@@ -1,6 +1,5 @@
 /*
  * Challenge 06 — NULL Pointer Dereference (심화: HTTP 헤더 파서)
- * 난이도: ★★★☆☆
  *
  * [시나리오]
  *   "Key: Value" 형식의 헤더 블록을 줄 단위로 파싱한다. 각 줄에서 ':' 를 찾아
