@@ -24,7 +24,7 @@
  *
  * [printf(로그)로 잡기]
  *   grow 에서 realloc 전후 주소를, 스냅샷/해제 시 저장/해제 주소를 찍어 대조:
- *     (grow)     fprintf(stderr, "grow old=%p new=%p\n", (void*)old, (void*)e->data);
+ *     (grow)     fprintf(stderr, "grow old=%p new=%p\n", (void*)old, (void*)e->data); // old 추가 후 확인
  *     (snapshot) fprintf(stderr, "snap  save=%p\n", (void*)e->data);
  *     (free)     fprintf(stderr, "free  undo[%d]=%p\n", i, (void*)e->undo[i]);
  *   → snapshot 이 저장한 주소가 grow 에서 이동해 이미 해제된 뒤, free 에서 다시

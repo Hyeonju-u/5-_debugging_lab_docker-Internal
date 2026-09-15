@@ -28,7 +28,7 @@
  *   (gdb) run                       → abort
  *   (gdb) bt                        → directory_free() 의 두 번째 free 루프
  *   (gdb) frame N ; print d->by_name[i] → 이 주소가 앞서 by_id 로 이미 free 됐는지 확인
- *   (gdb) print d->by_id[0]          → by_id[0] 와 by_name 의 원소가 같은 객체를 가리킴
+ *   (gdb) print d->by_id[0]          
  *
  * [printf(로그)로 잡기]
  *   free 직전마다 주소를 찍어 같은 주소가 두 번 나오는지 본다:

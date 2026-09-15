@@ -22,7 +22,7 @@
  *   (gdb) run                         → 크래시(SIGSEGV)
  *   (gdb) bt                          → screen_render() 안 w->vtbl->render(w) 지점
  *   (gdb) print w                     → 어떤 위젯인지(주소/슬롯) 확인
- *   (gdb) print w->vtbl               → 값이 0xabababab... 처럼 오염돼 있음
+ *   (gdb) print w->vtbl               → 오염돼 있음
  *   (gdb) print s->items[2]           → 이미 해제된 슬롯이 그대로 남아있음
  *   (gdb) break widget_destroy        → 누가/언제 이 위젯을 free 하는지 역추적
  *
