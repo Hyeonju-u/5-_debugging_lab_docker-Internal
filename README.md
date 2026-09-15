@@ -130,7 +130,7 @@ make check-all                # 챌린지(크래시) + 해설(정상 종료 0) �
 | 13  | linked_list_uaf         | ★★★★★ | 잡 큐 필터: free 후 next 읽기(UAF)        | SIGSEGV                  |
 | 14  | integer_overflow_alloc  | ★★★★★ | 이미지 w*h*ch int 곱 오버플로 → 과소할당       | SIGSEGV                  |
 | 15  | dangling_in_struct      | ★★★★★ | 세션이 해제된 User 의 콜백 호출               | SIGBUS/SIGSEGV           |
-| 16  | off_by_one_string       | ★★★★★ | cap 인자를 안 쓰는 append 오버플로           | SIGABRT (stack smashing) |
+| 16  | unused_cap_overflow     | ★★★★★ | cap 인자를 안 쓰는 append 오버플로           | SIGABRT (stack smashing) |
 | 17  | ownership_uaf           | ★★★★★ | 메시지 브로커: 소비자 해제 + 감사 로그 재해제(UAF)   | SIGSEGV                  |
 | 18  | cleanup_double_free     | ★★★★★ | 다자원 goto 래더: 검증 실패 경로 tx 이중 해제     | SIGABRT (double free)    |
 | 19  | realloc_shrink_overflow | ★★★★★ | 신호 버퍼 트림 후 옛 len 으로 순회             | SIGSEGV                  |

@@ -32,7 +32,7 @@
         "07_stack_use_after_return", "08_uninitialized_read", "09_strcpy_overflow",
         "10_realloc_dangling", "11_global_overflow", "12_free_non_heap",
         "13_linked_list_uaf", "14_integer_overflow_alloc", "15_dangling_in_struct",
-        "16_off_by_one_string", "17_ownership_uaf", "18_cleanup_double_free",
+        "16_unused_cap_overflow", "17_ownership_uaf", "18_cleanup_double_free",
         "19_realloc_shrink_overflow", "20_vector_stale_pointer"
       ],
       "default": "06_null_deref"

@@ -74,17 +74,13 @@ static long hist_total(const Histogram *h) {
 int main(void) {
     Histogram h = { .data = NULL, .len = 0, .cap = 0 };
 
-    /* 1) 많은 키를 넣어 배열을 크게 만든다(큰 배열 → mmap 백업) */
     for (int k = 0; k < 200000; k++) hist_add(&h, k);
 
-    /* 2) 자주 갱신할 버킷의 '주소'를 캐시 */
     Bucket *hot = &h.data[100000];
     hot->count = 1;
 
-    /* 3) 새 키가 계속 들어와 배열이 더 성장 → realloc 이동(옛 영역 unmap) → hot stale */
     for (int k = 200000; k < 600000; k++) hist_add(&h, k);
 
-    /* 4) 빠른 경로: 캐시한 hot 으로 바로 증가 → stale 포인터 쓰기 → 크래시 */
     hot->count += 1000;
 
     printf("hot=%ld total=%ld len=%zu\n", hot->count, hist_total(&h), h.len);
