@@ -11,7 +11,7 @@
 FROM ubuntu:24.04
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential gcc gdb make ca-certificates \
+          build-essential gcc gdb make ca-certificates git \
     && rm -rf /var/lib/apt/lists/*
 
 # gdb 시작 시 debuginfod(디버그 심볼 인터넷 자동 다운로드) 질문/지연 끄기.
