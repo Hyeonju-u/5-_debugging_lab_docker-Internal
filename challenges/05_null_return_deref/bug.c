@@ -35,48 +35,73 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_KV 16
-typedef struct {
+#define MAX_KV 16 // 맥스 키 밸류 값 16
+typedef struct
+{
     const char *keys[MAX_KV];
     const char *vals[MAX_KV];
     int n;
 } Config;
 
-static void cfg_set(Config *c, const char *k, const char *v) {
-    if (c->n < MAX_KV) { c->keys[c->n] = k; c->vals[c->n] = v; c->n++; }
+static void cfg_set(Config *c, const char *k, const char *v)
+{
+    if (c->n < MAX_KV) // 만약 c 포인터가 가르키는 n의값이 maxkv보다 크면
+    {
+        c->keys[c->n] = k; // c가 가르키는 키의 배열은 c->n
+        c->vals[c->n] = v; // c가 가르키는 vals의 배열은 c->n
+        c->n++;            // n 증가
+    }
 }
 
-static const char *cfg_get(const Config *c, const char *k) {
+static const char *cfg_get(const Config *c, const char *k)
+{
     for (int i = 0; i < c->n; i++)
-        if (strcmp(c->keys[i], k) == 0) return c->vals[i];
-    return NULL;                       /* 없는 키 → NULL */
+        if (strcmp(c->keys[i], k) == 0)
+        { // 두개의 문자열을 비교해 일치여부와 대소관계를 정수로 반환
+            return c->vals[i];
+            return NULL; /* 없는 키 → NULL */
+        }
 }
-
-static void expand(const Config *c, const char *tmpl, char *out, size_t outcap) {
-    size_t o = 0;
-    for (const char *p = tmpl; *p; ) {
-        if (p[0] == '$' && p[1] == '{') {
-            const char *end = strchr(p, '}');
-            if (!end) break;
-            char key[32];
-            size_t kl = (size_t)(end - (p + 2));
-            if (kl >= sizeof key) kl = sizeof key - 1;
+// expand는 이 반환값을 검사하지않고 곧장
+static void expand(const Config *c, const char *tmpl, char *out, size_t outcap)
+{
+    size_t o = 0; // o을 0으로 설정,
+    for (const char *p = tmpl; *p;)
+    {
+        if (p[0] == '$' && p[1] == '{') // p[0]의 주소값이 $고 p[1]이 {라면
+        {
+            const char *end = strchr(p, '}'); // 문자열내에 특정문자가 처음으로 나타내는 위치를 찾는 함수
+            if (!end)                         // 없으면 멈추고
+                break;
+            char key[32];                        // 32칸 지정
+            size_t kl = (size_t)(end - (p + 2)); // size_t int 대신 end를 가르키고있는 포인터에서 방금 건너뛴 위치 p+2뺌,포인터끼리 빼면 두 주소 사이에있는 데이터 개수(길이)가 나옴
+            if (kl >= sizeof key)
+                kl = sizeof key - 1;
             memcpy(key, p + 2, kl);
             key[kl] = '\0';
 
-            const char *v = cfg_get(c, key);      
-            size_t vl = strlen(v);                 
-            if (o + vl < outcap) { memcpy(out + o, v, vl); o += vl; }
+            const char *v = cfg_get(c, key);
+            size_t vl = strlen(v); // 에러나는 지점 size_t vl에 strlen(v) 대입
+            if (o + vl < outcap)
+            {
+                memcpy(out + o, v, vl);
+                o += vl;
+            }
             p = end + 1;
-        } else {
-            if (o + 1 < outcap) out[o++] = *p;
+        }
+        else
+        {
+            if (o + 1 < outcap)
+                out[o++] = *p;
+            out[o++] = *p;
             p++;
         }
     }
     out[o] = '\0';
 }
 
-int main(void) {
+int main(void)
+{
     /* [Thinking Point]
      * "{ .n = 0 }" 은 멤버 이름을 콕 집어 초기화하는 '지정 초기화자(designated initializer)'다.
      *   tip 1. 초기화자에 하나라도 값을 주면, 명시하지 않은 나머지 멤버는 전부 0 으로
@@ -84,7 +109,7 @@ int main(void) {
      *   tip 2. 만약 그냥 "Config cfg;" 로만 뒀다면 지역 변수라 n·keys·vals 가 쓰레기 값이다.
      *   생각해보기: n 이 쓰레기 값이면 cfg_set/cfg_get 에서 무슨 일이 벌어질까?
      *               */
-    Config cfg = { .n = 0 };
+    Config cfg = {.n = 0};
     cfg_set(&cfg, "host", "example.com");
     cfg_set(&cfg, "port", "8080");
 
@@ -96,11 +121,12 @@ int main(void) {
      *   생각해보기: 설정에 없는 키(${path})를 만나면 expand() 는 어떤 값을 받게 되고,
      *               그 값을 검사 없이 strlen/복사에 쓰면 무슨 일이 벌어질까?
      *               (힌트: "값이 없다"는 NULL 이지 빈 문자열 ""이 아니다) */
-    const char *tmpl = "http://${host}:${port}/${path}/index.html";
+    const char *tmpl = "http://${host}:${port}/index.html";
     char out[256];
 
-    expand(&cfg, tmpl, out, sizeof out);   /* ${path} 치환 시 NULL 역참조 → 크래시 */
+    expand(&cfg, tmpl, out, sizeof out); /* ${path} 치환 시 NULL 역참조 → 크래시 */
 
     printf("url = %s\n", out);
     return 0;
 }
+// 원래 *tmpl에 path 있었는데 삭제함
