@@ -3,7 +3,7 @@
  *
  * [시나리오]
  *   자동 성장하는 정수 동적 배열 IntList (init/ensure/push/sum). 용량이 부족하면
- *   list_ensure() 가 용량을 2배로 늘리고 realloc 한다. 이 리스트로 큰 수열을
+ *   list_ensure() 가 용량을 2배로 늘리고 realloc 한다. 이 리스트로 큰 수열을 //메모리 재할당?
  *   만들어 합을 구한다.
  *
  * [기대 동작]
@@ -38,8 +38,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct {
-    int   *data;
+typedef struct
+{
+    int *data;
     /* [Thinking Point]
      * 개수/크기를 담는 len, cap 을 왜 int 가 아니라 size_t 로 선언할까?
      *   tip 1. size_t 는 "이 플랫폼에서 표현 가능한 가장 큰 객체 크기"를 담도록 만든
@@ -50,52 +51,73 @@ typedef struct {
      */
     size_t len;
     size_t cap;
+    size_t new_cap; // l-cap과 갱신과 순서를 맞춰야함 변수 추가
 } IntList;
 
-static void list_init(IntList *l) {
-    l->cap  = 8;
-    l->len  = 0;
+static void list_init(IntList *l)
+{
+    l->cap = 8;
+    l->len = 0;
     l->data = malloc(l->cap * sizeof(int));
-    if (!l->data) { perror("malloc"); exit(1); }
+    if (!l->data)
+    {
+        perror("malloc");
+        exit(1);
+    }
 }
 
-static void list_ensure(IntList *l, size_t need) {
-    if (need <= l->cap) return;
+static void list_ensure(IntList *l, size_t need)
+{
+    if (need <= l->cap)
+        return;
 
     size_t newcap = l->cap ? l->cap * 2 : 8;
-    while (newcap < need) newcap *= 2;
+    while (newcap < need)
+        newcap *= 2;
 
-    int *p = realloc(l->data, l->cap * sizeof(int));
-    if (!p) { perror("realloc"); free(l->data); exit(1); }
+    int *p = realloc(l->data, l->cap * sizeof(size_t)); // int->size_t 수정
+    if (!p)
+    {
+        perror("realloc");
+        free(l->data);
+        exit(1);
+    }
 
     l->data = p;
-    l->cap  = newcap;
+    l->cap = newcap;
 }
 
-static void list_push(IntList *l, int x) {
-    if (l->len == l->cap) list_ensure(l, l->cap + 1);
+static void list_push(IntList *l, int x)
+{
+    if (l->len == l->cap)
+        list_ensure(l, l->cap + 1);
     l->data[l->len++] = x;
 }
 
-static long long list_sum(const IntList *l) {
+static long long list_sum(const IntList *l)
+{
     long long s = 0;
-    for (size_t i = 0; i < l->len; i++) s += l->data[i];
+    for (size_t i = 0; i < l->len; i++)
+        s += l->data[i];
     return s;
 }
 
-static void list_free(IntList *l) {
+static void list_free(IntList *l)
+{
     free(l->data);
     l->data = NULL;
     l->len = l->cap = 0;
 }
 
-int main(void) {
+int main(void)
+{
     IntList l;
     list_init(&l);
 
     const int N = 2000000;
-    for (int i = 0; i < N; i++) {
-        list_push(&l, i % 100);        
+    for (int i = 0; i < N; i++)
+    {
+        list_push(&l, i % 100);
     }
 
     printf("len=%zu cap=%zu sum=%lld\n", l.len, l.cap, list_sum(&l));
