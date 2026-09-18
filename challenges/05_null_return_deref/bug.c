@@ -59,8 +59,8 @@ static const char *cfg_get(const Config *c, const char *k)
         if (strcmp(c->keys[i], k) == 0)
         { // 두개의 문자열을 비교해 일치여부와 대소관계를 정수로 반환
             return c->vals[i];
-            return NULL; /* 없는 키 → NULL */
         }
+    return NULL; /* 없는 키 → NULL */
 }
 // expand는 이 반환값을 검사하지않고 곧장
 static void expand(const Config *c, const char *tmpl, char *out, size_t outcap)
@@ -79,15 +79,18 @@ static void expand(const Config *c, const char *tmpl, char *out, size_t outcap)
                 kl = sizeof key - 1;
             memcpy(key, p + 2, kl);
             key[kl] = '\0';
-
+            p = end + 1;
+            // if ( const char *v == NULL)
+            // return NULL ;
             const char *v = cfg_get(c, key);
+            if (v == NULL)
+                continue;
             size_t vl = strlen(v); // 에러나는 지점 size_t vl에 strlen(v) 대입
             if (o + vl < outcap)
             {
                 memcpy(out + o, v, vl);
                 o += vl;
             }
-            p = end + 1;
         }
         else
         {
@@ -121,7 +124,7 @@ int main(void)
      *   생각해보기: 설정에 없는 키(${path})를 만나면 expand() 는 어떤 값을 받게 되고,
      *               그 값을 검사 없이 strlen/복사에 쓰면 무슨 일이 벌어질까?
      *               (힌트: "값이 없다"는 NULL 이지 빈 문자열 ""이 아니다) */
-    const char *tmpl = "http://${host}:${port}/index.html";
+    const char *tmpl = "http://${host}:${port}${path}/index.html";
     char out[256];
 
     expand(&cfg, tmpl, out, sizeof out); /* ${path} 치환 시 NULL 역참조 → 크래시 */
