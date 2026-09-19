@@ -40,51 +40,59 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_LINES 8
-typedef struct {
-    char **lines;    /* 줄 포인터들의 '배열'을 가리킨다 */
-    int    count;
+#define MAX_LINES 8 // 컴파일전에 맥스_라인이 전부 8로 바뀜 최대 8줄 까지만 담음
+typedef struct
+{                                                       // 줄 시작 주소 목록을 담는 상자의 설계도 (메모리엔 아직 안차지함)
+    char **lines; /* 줄 포인터들의 '배열'을 가리킨다 */ // 화살표 주소목록 어디있는지 가리키기만 함
+    int count;                                          // 줄이 몇개인지
+    char *parts[MAX_LINES];                             // 실제칸 8개 각 줄의 시작 주소가 여기에 저장됨
 } LineView;
-
+// 아웃이 가르키는 라인뷰의 lines(화살표)와 카운트를 채움
 /* 결과를 뷰에 채운다(포인터를 함수 경계 너머로 옮겨 -Wdangling 을 회피하는 형태) */
-static void view_set(LineView *out, char **arr, int n) {
-    out->lines = arr;
-    out->count = n;
+static void view_set(LineView *out, char **arr, int n)
+{
+    out->lines = arr; // 화살표를 arr(주소목록의 시작)로 향하게 함 arr에는 주소 하나 들어있음
+    out->count = n;   // 줄 개수 저장
 }
 
-static void split_lines(LineView *out, char *text) {
-    char *parts[MAX_LINES];              
-    int n = 0;
-    /* strtok는 새로 할당하지 않고, 넘겨받은 문자열 내부의 주소를 돌려준다. 
-    * 따라서, strtok은 원본 버퍼를 제자리에서 수정한다. 
-    */
+static void split_lines(LineView *out, char *text)
+{              // 수정해야하는코드줄
+    int n = 0; // 지금까지 찾은 줄 개수(동시에 다음에 저장할 칸 번호)
+    /* strtok는 새로 할당하지 않고, 넘겨받은 문자열 내부의 주소를 돌려준다.
+     * 따라서, strtok은 원본 버퍼를 제자리에서 수정한다.
+     //첫 호출은 strtok(text, "\n")->alpha의 시작 주소
+     //다음부터는 strtok(NULL,"\n") ->아까 자르던곳에서 이어서 자름
+     */
+    // 반복조건 줄이 남아있고 in이 null 아님 칸이 남아있을때 n<8
     for (char *ln = strtok(text, "\n"); ln && n < MAX_LINES; ln = strtok(NULL, "\n"))
-        parts[n++] = ln;
+        out->parts[n++] = ln;
 
-    view_set(out, parts, n);      
+    view_set(out, out->parts, n); ///???
 
-    /* TODO 상기 코드를 수정하여 결과를 호출자가 준 out 에 직접 채운다(값 반환 아님, 지역 주소 반환 아님). */       
+    /* TODO 상기 코드를 수정하여 결과를 호출자가 준 out 에 직접 채운다(값 반환 아님, 지역 주소 반환 아님). */
 }
 
 /* split_lines 가 쓰던 스택 프레임을, 같은 모양(char*[8])의 지역 배열로 덮는다.
    무효가 된 parts[] 자리에 '그럴듯한 쓰레기 포인터'가 들어차게 만든다. */
-static void warm_stack(void) {
+static void warm_stack(void)
+{
     char *scratch[MAX_LINES];
     for (int i = 0; i < MAX_LINES; i++)
-        scratch[i] = (char *)0x4141414141414141ULL;   /* 매핑되지 않은 주소 */
-    __asm__ volatile("" :: "r"(scratch) : "memory");   /* 최적화 제거 방지 */
+        scratch[i] = (char *)0x4141414141414141ULL; /* 매핑되지 않은 주소 */ // 접근 불가능한 쓰레기 주소
+    __asm__ volatile("" ::"r"(scratch) : "memory"); /* 최적화 제거 방지 */   // 컴파일러가 이 코드를 지우지못하게함
 }
 
-int main(void) {
+int main(void)
+{
     char text[] = "alpha\nbeta\ngamma";
 
-    LineView v;
-    split_lines(&v, text);               
-    warm_stack();                        
+    LineView v;            //  빈상자 준비 메인이 끝날때 까지 살아있음
+    split_lines(&v, text); //&v상자의 주소를 넘김 스플리트라인의 아웃이 이걸 받음
+    warm_stack();          // 죽은 스택 자리를 0*41로 덮음
 
     long checksum = 0;
     for (int i = 0; i < v.count; i++)
-        checksum += (unsigned char)v.lines[i][0];
+        checksum += (unsigned char)v.lines[i][0]; // i번째 0번인덱스 값 형변환(unsigned char) 내장된 함수로 자료형 이름이고 컴파일러에게 주는 지시 이값의 비트를 (unsigned char)방식으로 읽으라는 뜻 char는 컴파일러/환경에 따라 부호가있을수도있음(음수 양수)(unsigned char)로 바꾸면 항상 0-255범위로 읽어서 환경과 상관없이 같은값이 나옴
 
     printf("lines = %d, checksum = %ld\n", v.count, checksum);
     return 0;

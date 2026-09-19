@@ -34,26 +34,32 @@
 #include <string.h>
 
 #define MAX_HEADERS 32
-typedef struct {
-    char *keys[MAX_HEADERS];
-    char *vals[MAX_HEADERS];
-    int   count;
+typedef struct // 구조체
+{
+    char *keys[MAX_HEADERS]; // 문자열
+    char *vals[MAX_HEADERS]; // 문자열
+    int count;
 } Headers;
-
-static char *skip_ws(char *s) {
-    while (*s == ' ' || *s == '\t') s++;
+// char *는 돌려줄 값의 종류만 정해줌 어떤 주소를 돌려줄지는 함수 본문의 리턴이 정함
+static char *skip_ws(char *s)
+{
+    while (*s == ' ' || *s == '\t') // 공백이거나 탭이면 s 주소값 증가 끝나면 s 리턴
+        s++;
     return s;
 }
 
-static void parse_headers(char *text, Headers *h) {
-    for (char *line = strtok(text, "\n"); line != NULL; line = strtok(NULL, "\n")) {
-        char *colon = strchr(line, ':');   
+static void parse_headers(char *text, Headers *h) // strtok 문자열 분리
+{
+    for (char *line = strtok(text, "\n"); line != NULL; line = strtok(NULL, "\n"))
+    {
+        char *colon = strchr(line, ':'); // strchr 문자열 내에서 특정문자가 처음으로 나타나는 위치를 찾는 함수
 
-        *colon = '\0';                    
+        *colon = '\0'; // ㅇㅔ러나는줄 // \0에서 n 으로 바꿈
         char *key = line;
         char *val = skip_ws(colon + 1);
 
-        if (h->count < MAX_HEADERS) {
+        if (h->count < MAX_HEADERS)
+        {
             h->keys[h->count] = key;
             h->vals[h->count] = val;
             h->count++;
@@ -61,16 +67,17 @@ static void parse_headers(char *text, Headers *h) {
     }
 }
 
-int main(void) {
+int main(void)
+{
 
     char raw[] =
         "Host: example.com\n"
         "Accept: */*\n"
-        "Connection\n"                     
+        "Connection:\n" //-->얘때문에 죽음 :추가
         "User-Agent: memdbg-cli\n";
 
-    Headers h = { .count = 0 };
-    parse_headers(raw, &h);                
+    Headers h = {.count = 0};
+    parse_headers(raw, &h);
 
     printf("parsed %d headers\n", h.count);
     for (int i = 0; i < h.count; i++)
