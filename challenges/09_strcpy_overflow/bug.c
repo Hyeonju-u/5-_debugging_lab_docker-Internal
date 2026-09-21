@@ -36,38 +36,47 @@
 #include <string.h>
 
 /* 필요한 총 바이트 수 = 모든 조각 길이 합 + 종료 문자 1 */
-static size_t joined_size(const char *const *parts, int n) {
-    size_t total = 1;                        /* '\0' 자리 */
-    for (int i = 0; i < n - 1; i++) {        
+static size_t joined_size(const char *const *parts, int n)
+{
+    size_t total = 1; /* '\0' 자리 */
+    for (int i = 0; i < n - 1; i++)
+    {
         total += strlen(parts[i]);
     }
     return total;
 }
 
-static char *join(const char *const *parts, int n) {
+static char *join(const char *const *parts, int n)
+{
     size_t need = joined_size(parts, n);
-    char *out = malloc(need);                /* 마지막 조각 길이만큼 부족하게 할당됨 */
-    if (!out) { perror("malloc"); exit(1); }
+    char *out = malloc(need); /* 마지막 조각 길이만큼 부족하게 할당됨 */
+    if (!out)
+    {
+        perror("malloc");
+        exit(1);
+    }
 
     size_t off = 0;
-    for (int i = 0; i < n; i++) {            /* 복사는 마지막 조각까지 전부 → 오버플로 */
-        strcpy(out + off, parts[i]);
+    for (int i = 0; i < n - 1; i++)
+    {                                /* 복사는 마지막 조각까지 전부 → 오버플로 */
+        strcpy(out + off, parts[i]); // 에러나는 줄
         off += strlen(parts[i]);
     }
     out[off] = '\0';
     return out;
 }
 
-int main(void) {
-    
+int main(void)
+{
+
     static char body[200000];
     memset(body, 'x', sizeof body - 1);
     body[sizeof body - 1] = '\0';
 
-    const char *parts[] = { "GET ", "/index.html", " HTTP/1.1\r\n\r\n", body };
+    const char *parts[] = {"GET ", "/index.html", " HTTP/1.1\r\n\r\n", body};
     int n = (int)(sizeof(parts) / sizeof(parts[0]));
 
-    char *msg = join(parts, n);              /* 복사 중 힙 오버플로 → 크래시 */
+    char *msg = join(parts, n); /* 복사 중 힙 오버플로 → 크래시 */
 
     printf("joined length = %zu\n", strlen(msg));
     free(msg);

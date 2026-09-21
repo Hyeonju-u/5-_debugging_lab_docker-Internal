@@ -2,9 +2,9 @@
  * Challenge 08 — 미초기화 포인터 읽기 (심화: 더티 힙 재사용)
  *
  * [시나리오]
- *   희소 행렬(sparse matrix)을 "행 포인터 표"로 표현한다. 
+ *   희소 행렬(sparse matrix)을 "행 포인터 표"로 표현한다.
  *   희소 행렬(Sparse Matrix)은 대부분의 원소가 0인 행렬을 말한다.
- * 예시 : 
+ * 예시 :
  * 0 0 0 0 5
  * 0 0 3 0 0
  * 0 0 0 0 0
@@ -12,7 +12,7 @@
  * 0 0 0 9 0
  *
  * rows[i] 는 i 번째 행
- * 배열을 가리키며, 실제 데이터가 있는 행만 malloc 해서 연결한다.
+ * 배열을 가리키며, 실제 데이터가 있는 행만 malloc 해서 연결한다.//실제 데이터가 없는 행도 있음
  *
  * [기대 동작]
  *   채운 행만 안전하게 합산해 출력.
@@ -57,54 +57,74 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ROWS 32
-#define COLS 4
+#define ROWS 32 // 32행
+#define COLS 4  // 4열
 
 /* 힙을 '더럽혀' 두어, 이후 같은 크기 할당이 쓰레기 값을 물려받게 만든다.
    (실무에서 흔한 '이전에 쓰고 free 한 청크의 잔여물' 상황을 재현) */
-static void dirty_heap(void) {
+static void dirty_heap(void)
+{
     void *scratch = malloc(ROWS * sizeof(int *));
-    if (scratch) {
-        memset(scratch, 0xAB, ROWS * sizeof(int *));
-        free(scratch);              /* glibc tcache 로 반환 → 같은 크기 malloc 이 이 블록을
-                                       LIFO 로 되돌려받는다(리눅스+glibc 고정이라 결정적). */
+    if (scratch)
+    {
+        memset(scratch, 0xAB, ROWS * sizeof(int *)); // memset:지정된 메모리 블록을 원하는 값으로 채우거나 초기화 할때 사용하는 함수
+        free(scratch);                               /* glibc tcache 로 반환 → 같은 크기 malloc 이 이 블록을
+                                                        LIFO 로 되돌려받는다(리눅스+glibc 고정이라 결정적). */
     }
 }
 
-static int **make_matrix(void) {
+static int **make_matrix(void)
+{
 
-    int **rows = malloc(ROWS * sizeof(int *));
-    if (!rows) { perror("malloc"); exit(1); }
-
-    for (int i = 0; i < ROWS; i += 2) {
-        int *r = malloc(COLS * sizeof(int));
-        for (int j = 0; j < COLS; j++) r[j] = i * COLS + j;
-        rows[i] = r;
+    int **rows = (int **)calloc(ROWS, sizeof(int *));
+    if (!rows)
+    {
+        perror("calloc");
+        exit(1);
     }
+
+    for (int i = 0; i < ROWS; i += 2) // i 0으로 시작 i가 32보다 작을때까지 반복, 순회할때마다 조건 맞으면 행 2,4,8 짝수만 들어가게 i+2 //16번반복 홀수행은 아무것도 안들어가게 남음
+    {
+        // int *r = (int *)calloc(COLS, sizeof(int)); // calloc 추가
+        int *r = malloc(COLS * sizeof(int));
+        for (int j = 0; j < COLS; j++) // 4번반복 4열
+            r[j] = i * COLS + j;
+        rows[i] = r; // r의 주소값을 row[i]다가 넣어라
+    }
+
     return rows;
 }
 
-static long row_sum(int **rows, int nrows) {
+static long row_sum(int **rows, int nrows)
+{
     long total = 0;
-    for (int i = 0; i < nrows; i++) {
-        for (int j = 0; j < COLS; j++) {
-            total += rows[i][j];      
+    // free(r);
+    for (int i = 0; i < nrows; i++)
+    {
+        for (int j = 0; j < COLS; j++)
+        {
+            if (rows[i] != NULL)
+                total += rows[i][j]; // 에러나는지점
         }
     }
     return total;
 }
 
-int main(void) {
+int main(void)
+{
     dirty_heap();
 
     int **rows = make_matrix();
     printf("summing %dx%d matrix...\n", ROWS, COLS);
 
-    long s = row_sum(rows, ROWS);     
+    long s = row_sum(rows, ROWS);
 
     printf("sum = %ld\n", s);
 
-    for (int i = 0; i < ROWS; i += 2) free(rows[i]);
+    for (int i = 0; i < ROWS; i += 2)
+
+        free(rows[i]);
     free(rows);
+
     return 0;
 }
