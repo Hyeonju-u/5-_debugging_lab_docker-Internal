@@ -47,39 +47,61 @@
  *          지역 변수는 초기화하지 않으면 쓰레기 값이다(8번 챌린지).
  *   생각해보기: 여러 번 호출돼도 같은 저장소를 계속 나눠 쓰려면(커서 arena_off 유지)
  *               이 버퍼는 왜 전역(또는 static)이어야 할까? */
-static unsigned char arena[ARENA_SIZE];    /* 전역(.bss) 아레나 */
+static unsigned char arena[ARENA_SIZE]; /* 전역(.bss) 아레나 */
 static size_t arena_off = 0;
-
-static void *arena_alloc(size_t n) {
-    void *p = &arena[arena_off];
-    arena_off += n;
-    return p;
+// 정해진 공간내에서 요청할때마다 공간 주는 함수 4096으로 한정
+static void *arena_alloc(size_t n)
+{
+    void *p = &arena[arena_off];        // arena[arena_off]값의 주소를 포인터 변수에 넣기
+    if (arena_off + n <= sizeof(arena)) // 추가 사이즈 공간 4096보다 작거나같으면
+        arena_off += n;                 // n값을 arena_off에 넣기 원래 있던 코드 원래쓴공간+추가공간 n
+    else                                // 추가
+        return NULL;                    // 추가 공간이 arena 보다 크면 Null 반환
+    return p;                           // 원래 있던 코드
 }
 
-static char *intern(const char *s) {
-    size_t n = strlen(s) + 1;
+static char *intern(const char *s)
+{
+    size_t n = strlen(s) + 1; // s가 가르키는 문자열 길이 글자수 +1 N에다가 대입
     char *dst = arena_alloc(n);
-    memcpy(dst, s, n);                      /* 경계를 넘은 위치면 여기서 크래시 */
+    if (dst == NULL) // arena_allo이 null이면
+        return NULL;
+    else
+        memcpy(dst, s, n); /* 경계를 넘은 위치면 여기서 크래시 */
     return dst;
 }
 
-int main(void) {
-    
+int main(void)
+{
+
     const char *words[] = {
-        "insert", "delete", "search", "traverse", "balance",
-        "rotate", "rehash", "compact", "serialize", "checkpoint",
+        "insert",
+        "delete",
+        "search",
+        "traverse",
+        "balance",
+        "rotate",
+        "rehash",
+        "compact",
+        "serialize",  // 10
+        "checkpoint", // 11
     };
-    int nwords = (int)(sizeof(words) / sizeof(words[0]));
+    int nwords = (int)(sizeof(words) / sizeof(words[0])); // words[0] 원소 하나의 타입 크기를 재는것
 
     char *last = NULL;
     long total = 0;
-    for (int i = 0; i < 100000; i++) {
-        char buf[32];
+    for (int i = 0; i < 100000; i++)
+    {
+        char buf[32]; // 크기 32
         snprintf(buf, sizeof buf, "%s-%d", words[i % nwords], i);
-        last = intern(buf);                 
-        total += (long)strlen(last);
+        last = intern(buf);
+        if (last == NULL) // intern null이면
+            break;        // 리턴하면 함수 종료 되니까 멈추기
+        else
+            total += (long)strlen(last);
     }
+    if (last != NULL) // null이 아니면 아래 출력
 
-    printf("interned, last=%s total_len=%ld\n", last, total);
+        printf("interned, last=%s total_len=%ld\n", last, total);
     return 0;
 }

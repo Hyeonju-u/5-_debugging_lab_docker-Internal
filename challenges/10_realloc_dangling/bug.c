@@ -73,8 +73,18 @@ static void eb_init(EditBuffer *e)
 // 원시버퍼 포인터가 아니라 내용의 복사본을 따로 소유해야함 malloc+memcpy 로 별도 버퍼를 만들고, 그 복사본만 해제)
 static void eb_snapshot(EditBuffer *e)
 {
-    if (e->undo_n < MAX_UNDO)
-        e->undo[e->undo_n++] = e->data;
+    if (e->undo_n < MAX_UNDO) // MAX_UNDO보다 작으면 아래함수 실행하게 커지면 바로 함수 종료
+    {
+        int *new_Buffer = malloc(e->undo_n * sizeof(int)); // 새로 추가
+        if (!new_Buffer)
+        {
+            perror("malloc");
+            exit(1);
+        }
+        memcpy(new_Buffer, e->data, e->undo_n * sizeof(int));
+
+        e->undo[e->undo_n++] = new_Buffer; // e->data 가르키던 주소를 뉴 버퍼로 새로 수정
+    }
 }
 
 static void eb_grow(EditBuffer *e, size_t need)
