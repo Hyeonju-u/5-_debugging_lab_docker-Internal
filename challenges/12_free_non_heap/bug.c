@@ -42,54 +42,67 @@
  *   tip 2. strdup 은 C 표준(C11)에는 없고 POSIX 에 있는 함수다. -std=c11 로 엄격히
  *          컴파일하면 이 매크로가 없을 경우 strdup 선언이 감춰져 '암시적 선언' 경고가 나고,
  *          반환값이 int 로 잘못 취급돼 포인터가 깨지는 별도 버그로 이어질 수 있다.
- *   생각해보기 1 (POSIX 란?): POSIX 는 유닉스 계열 OS 가 공통으로 제공하기로 약속한
+ *   생각해보기 1 (POSIX 란?): 이런 함수들을 이런 규격으로 만들어라"는 설계도
+ *                         POSIX 는 유닉스 계열 OS 가 공통으로 제공하기로 약속한
  *               '운영체제 인터페이스 표준'이다(파일·프로세스·스레드·문자열 등의 API 규격).
  *               리눅스·macOS 등이 이를 따르므로, POSIX 함수를 쓰면 여러 OS 에서 같은
  *               코드가 동작한다. 그런데 왜 C 표준(C11)과 POSIX 를 굳이 구분할까?
+ * c11은 언어 자체의 문법과 최소 라이브러리를 정의하는 표준이고 POSIX는 그 언어로 유닉스 계열의 Os 기능을 쓸때의 약속 이함수는 C 표준이 보장안해주고 POSIX가 보장해줌
  *   생각해보기 2 (버전 관리 관점): 왜 "쓸 수 있는 표준 버전"을 코드가 스스로 선언하게 할까?
  *               (숫자 200809L = 표준의 '연-월' 버전. 값이 클수록 더 최신 표준) */
-#define _POSIX_C_SOURCE 200809L
+#define _POSIX_C_SOURCE 200809L // 200809L에 있는 함수들 쓸 거니까 헤더에서 선언 좀 보여줘"라는 요청
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define MAX_FIELDS 8
-typedef struct {
-    char *base;                  /* 원본(=malloc 이 돌려준) 버퍼 */
-    char *fields[MAX_FIELDS];    /* 각 필드 시작(대개 base 내부를 가리킴) */
-    int   n;
+typedef struct
+{
+    char *base;               /* 원본(=malloc 이 돌려준) 버퍼 */
+    char *fields[MAX_FIELDS]; /* 각 필드 시작(대개 base 내부를 가리킴) */
+    int n;                    // 지금까지 몇개의 필드가 필드 배열에 채워졌는지 세는 카운터
 } Row;
 
-static void parse_row(Row *r, const char *csv) {
-    r->base = strdup(csv);       
-    if (!r->base) { perror("strdup"); exit(1); }
-    r->n = 0;
+static void parse_row(Row *r, const char *csv)
+{
+    r->base = strdup(csv); // strdup malloc을 호출해 복사할 문자열에 대한 스토리지 공간예약
+    if (!r->base)          // malloc 으로 힙 할당
+    {
+        perror("strdup");
+        exit(1);
+    }
+    r->n = 0; // 공간 할당 됐으면 카운터 0으로 초기화
 
     for (char *tok = strtok(r->base, ","); tok && r->n < MAX_FIELDS;
-         tok = strtok(NULL, ",")) {
-        r->fields[r->n++] = tok;  /* fields[0]=base, 나머지는 내부 포인터 */
+         tok = strtok(NULL, ",")) // strtok 문자열 자르기 함수 strtok 두번째인자에 NULL을 주면 내부적으로 기억해둔 이전 위치부터 이어서자름
+    {
+        r->fields[r->n++] = tok; /* fields[0]=base, 나머지는 내부 포인터 */ //
     }
 }
 
-static void row_print(const Row *r) {
+static void row_print(const Row *r)
+{
     printf("%d fields:", r->n);
-    for (int i = 0; i < r->n; i++) printf(" [%s]", r->fields[i]);
+    for (int i = 0; i < r->n; i++)
+        printf(" [%s]", r->fields[i]); // r->fields[i]
     printf("\n");
 }
 
-static void row_free(Row *r) {
-    for (int i = 0; i < r->n; i++) {
-        free(r->fields[i]);       
-    }
+static void row_free(Row *r)
+{
+    // for (int i = 0; i < r->n; i++) // r->n 값 4 삭제
+    free(r->base); // 에러나는 줄 주소0xaaaaaaac12a0 값 "id" 값 n값이 4라 프리가 4번 됨
+    r->base = NULL;
     r->n = 0;
 }
 
-int main(void) {
+int main(void)
+{
     Row r;
     parse_row(&r, "id,name,dept,salary");
     row_print(&r);
 
-    row_free(&r);                 
+    row_free(&r);
     printf("done\n");
     return 0;
 }
