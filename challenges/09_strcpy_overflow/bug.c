@@ -37,11 +37,11 @@
 
 /* 필요한 총 바이트 수 = 모든 조각 길이 합 + 종료 문자 1 */
 static size_t joined_size(const char *const *parts, int n)
-{
-    size_t total = 1; /* '\0' 자리 */
-    for (int i = 0; i < n - 1; i++)
+{                               // 크기 계산 루프
+    size_t total = 1;           /* '\0' 자리 */
+    for (int i = 0; i < n; i++) // 원래 i< n-1 0,1,2만 계산 마지막 인덱스 3 계산 안함
     {
-        total += strlen(parts[i]);
+        total += strlen(parts[i]); // part 인덱스의 문자열 개수를 total 에다가 넣기
     }
     return total;
 }
@@ -57,9 +57,10 @@ static char *join(const char *const *parts, int n)
     }
 
     size_t off = 0;
-    for (int i = 0; i < n - 1; i++)
-    {                                /* 복사는 마지막 조각까지 전부 → 오버플로 */
+    for (int i = 0; i < n; i++)      // 원래 i< n
+    {                                // 복사 루프 /* 복사는 마지막 조각까지 전부 → 오버플로 */
         strcpy(out + off, parts[i]); // 에러나는 줄
+        // i 번째 조각을 지금까지 쓴 글자 뒤에 바로 이어서 복사해라
         off += strlen(parts[i]);
     }
     out[off] = '\0';

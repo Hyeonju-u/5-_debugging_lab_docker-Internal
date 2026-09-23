@@ -64,28 +64,29 @@
    (실무에서 흔한 '이전에 쓰고 free 한 청크의 잔여물' 상황을 재현) */
 static void dirty_heap(void)
 {
-    void *scratch = malloc(ROWS * sizeof(int *));
+    void *scratch = malloc(ROWS * sizeof(int *)); ////32*8(포인터 8바이트=256
     if (scratch)
     {
-        memset(scratch, 0xAB, ROWS * sizeof(int *)); // memset:지정된 메모리 블록을 원하는 값으로 채우거나 초기화 할때 사용하는 함수
-        free(scratch);                               /* glibc tcache 로 반환 → 같은 크기 malloc 이 이 블록을
-                                                        LIFO 로 되돌려받는다(리눅스+glibc 고정이라 결정적). */
+        memset(scratch, 0xAB, ROWS * sizeof(int *)); // memset:지정된 메모리 블록을 원하는 값으로 채우거나 초기화 할때 사용하는 함수//256바이트에 전부 0xAB로 값 넣고
+        free(scratch);                               // 메모리 반납시 내용은 안지워진채로 반납됨
+        /* glibc tcache 로 반환 → 같은 크기 malloc 이 이 블록을
+         LIFO 로 되돌려받는다(리눅스+glibc 고정이라 결정적). */
     }
 }
 
 static int **make_matrix(void)
 {
-
+    // calloc 메모리 할당 후 모든 바이트를 0으로 초기화
     int **rows = (int **)calloc(ROWS, sizeof(int *));
-    if (!rows)
+    if (!rows) // 원래 malloc
     {
-        perror("calloc");
+        perror("calloc"); // 원래 malloc
         exit(1);
     }
 
     for (int i = 0; i < ROWS; i += 2) // i 0으로 시작 i가 32보다 작을때까지 반복, 순회할때마다 조건 맞으면 행 2,4,8 짝수만 들어가게 i+2 //16번반복 홀수행은 아무것도 안들어가게 남음
     {
-        // int *r = (int *)calloc(COLS, sizeof(int)); // calloc 추가
+        // int *r = (int *)calloc(COLS, sizeof(int)); // 원래 calloc 추가
         int *r = malloc(COLS * sizeof(int));
         for (int j = 0; j < COLS; j++) // 4번반복 4열
             r[j] = i * COLS + j;
@@ -103,7 +104,7 @@ static long row_sum(int **rows, int nrows)
     {
         for (int j = 0; j < COLS; j++)
         {
-            if (rows[i] != NULL)
+            if (rows[i] != NULL)     // i=1,홀수행이면 에러나서 조건문 추가
                 total += rows[i][j]; // 에러나는지점
         }
     }

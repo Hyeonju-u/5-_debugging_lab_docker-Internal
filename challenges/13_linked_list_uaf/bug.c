@@ -38,30 +38,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct Job {
+typedef struct Job
+{
     int id;
     int priority;
     struct Job *next;
 } Job;
 
-typedef struct {
-    int   *ids;
+typedef struct
+{
+    int *ids;
     size_t len, cap;
 } Audit;
 
-static void audit_add(Audit *a, int id) {
-    if (a->len == a->cap) {
-        a->cap = a->cap ? a->cap * 2 : 16;
-        int *p = realloc(a->ids, a->cap * sizeof(int));   
-        if (!p) { perror("realloc"); exit(1); }
-        a->ids = p;
+static void audit_add(Audit *a, int id)
+{
+    if (a->len == a->cap) // a가 가르키는len이랑 a가 가르키는 cap이랑 같으면
+    {
+        a->cap = a->cap ? a->cap * 2 : 16; //  cap이 0이 아니면 2배로 0이면 16으로 바꿔라 삼항 연산자 조건? 참일때값:거짓일때 값 a->cap:16
+        int *p = realloc(a->ids, a->cap * sizeof(int));
+        if (!p)
+        {
+            perror("realloc");
+            exit(1);
+        }
+        a->ids = p; // p에담긴 주소를 a->ids에 복사해라
     }
-    a->ids[a->len++] = id;
+    a->ids[a->len++] = id; // id=4000 a->len-1 =18446744073709551615 a->len=0
 }
 
-static Job *push_job(Job *head, int id, int priority) {
+static Job *push_job(Job *head, int id, int priority)
+{
     Job *n = malloc(sizeof *n);
-    if (!n) { perror("malloc"); exit(1); }
+    if (!n)
+    {
+        perror("malloc");
+        exit(1);
+    }
     n->id = id;
     n->priority = priority;
     n->next = head;
@@ -69,23 +82,32 @@ static Job *push_job(Job *head, int id, int priority) {
 }
 
 /* 취소된 잡을 반납한다(해제 책임은 이 함수가 진다). */
-static void job_release(Job *j) {
+static void job_release(Job *j)
+{
     free(j);
 }
 
-static Job *filter_jobs(Job *head, int threshold, Audit *audit) {
+static Job *filter_jobs(Job *head, int threshold, Audit *audit)
+{
     Job *keep = NULL, *keep_tail = NULL;
     Job *cur = head;
 
-    while (cur != NULL) {
-        if (cur->priority < threshold) {
-            audit_add(audit, cur->id);   
-            job_release(cur);            
-            cur = cur->next;             
-        } else {
+    while (cur != NULL)
+    {
+        if (cur->priority < threshold) // main error
+        {
+            audit_add(audit, cur->id);
+            job_release(cur);
+            cur = cur->next;
+        }
+        else
+        {
             Job *nx = cur->next;
             cur->next = NULL;
-            if (keep_tail) keep_tail->next = cur; else keep = cur;
+            if (keep_tail)
+                keep_tail->next = cur;
+            else
+                keep = cur;
             keep_tail = cur;
             cur = nx;
         }
@@ -93,19 +115,26 @@ static Job *filter_jobs(Job *head, int threshold, Audit *audit) {
     return keep;
 }
 
-int main(void) {
+int main(void)
+{
     Job *head = NULL;
     for (int i = 1; i <= 4000; i++)
-        head = push_job(head, i, (i * 7) % 10);   
+        head = push_job(head, i, (i * 7) % 10);
 
     Audit audit = {0};
-    head = filter_jobs(head, 5, &audit);           
+    head = filter_jobs(head, 5, &audit); // error 1
 
     int remaining = 0;
-    for (Job *c = head; c; c = c->next) remaining++;
+    for (Job *c = head; c; c = c->next)
+        remaining++;
     printf("cancelled=%zu remaining=%d\n", audit.len, remaining);
 
     free(audit.ids);
-    for (Job *c = head; c; ) { Job *nx = c->next; free(c); c = nx; }
+    for (Job *c = head; c;)
+    {
+        Job *nx = c->next;
+        free(c);
+        c = nx;
+    }
     return 0;
 }
